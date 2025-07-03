@@ -14,13 +14,22 @@ inputs:
   pushgateway_url:
     description: "Pushgateway URL"
     required: false
-    default: "http://pushgateway:9091"
+    default: "http://host.docker.internal:9091"
+
 runs:
   using: "composite"
   steps:
-    - name: Push metric
-      run: "./push.sh"
+    - name: Push metrics
       shell: bash
+      run: |
+        set -euo pipefail
+
+        value="${{ inputs.value }}"
+        metric_name="${{ inputs.metric_name }}"
+        job="${{ inputs.job }}"
+        uri="${{ inputs.pushgateway_url }}"
+
+        echo "${metric_name} ${value}" | curl -v -H "Content-Type: text/plain" --data-binary @- "$uri/metrics/job/${job}"
       env:
         VALUE: "${{ inputs.value }}"
         METRIC_NAME: "${{ inputs.metric_name }}"
