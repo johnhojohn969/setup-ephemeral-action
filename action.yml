@@ -1,0 +1,19 @@
+name: Setup ephemeral workdir
+inputs:
+  suffix:
+    description: Optional suffix appended to the folder name
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        suffix="${{ inputs.suffix }}"
+        if [ -n "$suffix" ]; then
+          suffix="-$suffix"
+        fi
+        WORK_DIR="$GITHUB_WORKSPACE/$(date +%s)-${GITHUB_WORKFLOW// /_}$suffix"
+        echo "WORK_DIR=$WORK_DIR" >> "$GITHUB_ENV"
+        mkdir -p "$WORK_DIR"
+
