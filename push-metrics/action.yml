@@ -19,7 +19,7 @@ runs:
   using: "composite"
   steps:
     - name: Push metric
-      run: "${{ github.action_path }}/push.sh"
+      run: "./push.sh"
       shell: bash
       env:
         VALUE: "${{ inputs.value }}"
