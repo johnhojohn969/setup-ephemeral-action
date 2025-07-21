@@ -1,0 +1,131 @@
+# generic-app.yaml - Helm chart đơn file (Deployment + Service + Ingress cho FE + BE)
+
+---
+# Backend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}-backend
+  labels:
+    app: {{ .Values.appName }}
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+        tier: backend
+    spec:
+      containers:
+        - name: backend
+          image: {{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag }}
+          ports:
+            - containerPort: {{ .Values.image.backend.port }}
+          env:
+            - name: INSIGHTS_HISTORY_URL
+              value: {{ .Values.env.INSIGHTS_HISTORY_URL }}
+
+---
+# Backend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}-backend
+spec:
+  selector:
+    app: {{ .Values.appName }}
+    tier: backend
+  ports:
+    - port: {{ .Values.image.backend.port }}
+      targetPort: {{ .Values.image.backend.port }}
+
+---
+# Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}-frontend
+  labels:
+    app: {{ .Values.appName }}
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+        tier: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: {{ .Values.image.frontend.repository }}:{{ .Values.image.frontend.tag }}
+          ports:
+            - containerPort: {{ .Values.image.frontend.port }}
+          env:
+            - name: VITE_API_BASE
+              value: {{ .Values.env.VITE_API_BASE }}
+
+---
+# Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}-frontend
+spec:
+  selector:
+    app: {{ .Values.appName }}
+    tier: frontend
+  ports:
+    - port: {{ .Values.image.frontend.port }}
+      targetPort: {{ .Values.image.frontend.port }}
+
+---
+# Frontend Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.appName }}-frontend
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  rules:
+    - host: {{ .Values.ingress.frontendHost }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.appName }}-frontend
+                port:
+                  number: {{ .Values.image.frontend.port }}
+
+---
+# Backend Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.appName }}-backend
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  rules:
+    - host: {{ .Values.ingress.backendHost }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.appName }}-backend
+                port:
+                  number: {{ .Values.image.backend.port }}
