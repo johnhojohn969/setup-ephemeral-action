@@ -1,0 +1,35 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      project:
+        description: "Project folder under ./projects containing values.yaml"
+        required: true
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Build and Push Images
+        uses: ./.github/actions/build-and-push
+
+      - name: Determine project name
+        id: vars
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.project }}" ]; then
+            echo "name=${{ inputs.project }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=$(basename ${{ github.repository }})" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy with Helm
+        uses: johnhojohn969/setup-ephemeral-action/.github/actions/deploy-helm-generic@main
+        with:
+          project: ${{ steps.vars.outputs.name }}
