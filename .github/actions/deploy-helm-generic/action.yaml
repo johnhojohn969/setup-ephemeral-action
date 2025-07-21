@@ -1,0 +1,23 @@
+name: Deploy Helm Generic App
+description: Helm upgrade/install generic app chart via OCI
+
+inputs:
+  project:
+    description: Tên thư mục ứng dụng chứa file values.yaml (dưới ./projects)
+    required: true
+  chart:
+    description: Đường dẫn chart OCI (default là ghcr.io/johnhojohn969/generic-app)
+    required: false
+    default: oci://ghcr.io/johnhojohn969/generic-app
+
+runs:
+  using: composite
+  steps:
+    - name: Helm upgrade/install
+      shell: bash
+      run: |
+        helm upgrade --install ${{ inputs.project }} \
+          ${{ inputs.chart }} \
+          -f ./projects/${{ inputs.project }}/values.yaml \
+          --namespace ${{ inputs.project }} \
+          --create-namespace
