@@ -25,10 +25,12 @@ spec:
         - name: backend
           image: {{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag }}
           ports:
-            - containerPort: {{ .Values.image.backend.port }}
+            - containerPort: {{ .Values.image.backend.port | default 8000 }}
           env:
-            - name: INSIGHTS_HISTORY_URL
-              value: {{ .Values.env.INSIGHTS_HISTORY_URL }}
+            {{- range $key, $value := .Values.env.backend }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+            {{- end }}
 
 ---
 # Backend Service
@@ -41,8 +43,8 @@ spec:
     app: {{ .Values.appName }}
     tier: backend
   ports:
-    - port: {{ .Values.image.backend.port }}
-      targetPort: {{ .Values.image.backend.port }}
+    - port: {{ .Values.image.backend.port | default 8000 }}
+      targetPort: {{ .Values.image.backend.port | default 8000 }}
 
 ---
 # Frontend Deployment
@@ -69,10 +71,12 @@ spec:
         - name: frontend
           image: {{ .Values.image.frontend.repository }}:{{ .Values.image.frontend.tag }}
           ports:
-            - containerPort: {{ .Values.image.frontend.port }}
+            - containerPort: {{ .Values.image.frontend.port | default 80 }}
           env:
-            - name: VITE_API_BASE
-              value: {{ .Values.env.VITE_API_BASE }}
+            {{- range $key, $value := .Values.env.frontend }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+            {{- end }}
 
 ---
 # Frontend Service
@@ -85,8 +89,8 @@ spec:
     app: {{ .Values.appName }}
     tier: frontend
   ports:
-    - port: {{ .Values.image.frontend.port }}
-      targetPort: {{ .Values.image.frontend.port }}
+    - port: {{ .Values.image.frontend.port | default 80 }}
+      targetPort: {{ .Values.image.frontend.port | default 80 }}
 
 ---
 # Frontend Ingress
@@ -98,7 +102,7 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   rules:
-    - host: {{ .Values.ingress.frontendHost }}
+    - host: {{ .Values.ingress.frontendHost | default (printf "%s.attyzen.com" .Values.appName) }}
       http:
         paths:
           - path: /
@@ -107,7 +111,7 @@ spec:
               service:
                 name: {{ .Values.appName }}-frontend
                 port:
-                  number: {{ .Values.image.frontend.port }}
+                  number: {{ .Values.image.frontend.port | default 80 }}
 
 ---
 # Backend Ingress
@@ -119,7 +123,7 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   rules:
-    - host: {{ .Values.ingress.backendHost }}
+    - host: {{ .Values.ingress.backendHost | default (printf "%s-service.attyzen.com" .Values.appName) }}
       http:
         paths:
           - path: /
@@ -128,4 +132,4 @@ spec:
               service:
                 name: {{ .Values.appName }}-backend
                 port:
-                  number: {{ .Values.image.backend.port }}
+                  number: {{ .Values.image.backend.port | default 8000 }}
