@@ -1,5 +1,30 @@
 # generic-app.yaml - Helm chart đơn file (Deployment + Service + Ingress cho FE + BE)
 
+# -----------------------------------------------------------------------------
+# EXPECTED VALUES STRUCTURE (ví dụ trong values.yaml):
+#
+# appName: atty-financial                      # Prefix tên app
+# domainName: attyzen.com                      # Domain mặc định cho ingress
+# image:
+#   backend:
+#     repository: ghcr.io/your-org/backend     # Image backend (repo gốc)
+#     tag: latest                              # Tag của image backend
+#     port: 8002                               # Port container backend
+#   frontend:
+#     repository: ghcr.io/your-org/frontend    # Image frontend (repo gốc)
+#     tag: latest                              # Tag của image frontend
+#     port: 80                                 # Port container frontend
+# env:
+#   backend:                                   # Biến môi trường cho backend
+#     VAR1: value1
+#     VAR2: "https://{{ .Values.appName }}.{{ .Values.domainName }}"
+#   frontend:                                  # Biến môi trường cho frontend
+#     VITE_API_BASE: "https://{{ .Values.appName }}-service.{{ .Values.domainName }}"
+# ingress:
+#   frontendHost: frontend.customdomain.com    # (optional) override subdomain FE
+#   backendHost: backend.customdomain.com      # (optional) override subdomain BE
+# -----------------------------------------------------------------------------
+
 ---
 # Backend Deployment
 apiVersion: apps/v1
@@ -29,7 +54,7 @@ spec:
           env:
             {{- range $key, $value := .Values.env.backend }}
             - name: {{ $key }}
-              value: "{{ $value }}"
+              value: "{{ tpl $value $ }}"
             {{- end }}
 
 ---
@@ -75,7 +100,7 @@ spec:
           env:
             {{- range $key, $value := .Values.env.frontend }}
             - name: {{ $key }}
-              value: "{{ $value }}"
+              value: "{{ tpl $value $ }}"
             {{- end }}
 
 ---
@@ -102,7 +127,7 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   rules:
-    - host: {{ .Values.ingress.frontendHost | default (printf "%s.attyzen.com" .Values.appName) }}
+    - host: {{ .Values.ingress.frontendHost | default (printf "%s.%s" .Values.appName (.Values.domainName | default "attyzen.com")) }}
       http:
         paths:
           - path: /
@@ -123,7 +148,7 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   rules:
-    - host: {{ .Values.ingress.backendHost | default (printf "%s-service.attyzen.com" .Values.appName) }}
+    - host: {{ .Values.ingress.backendHost | default (printf "%s-service.%s" .Values.appName (.Values.domainName | default "attyzen.com")) }}
       http:
         paths:
           - path: /
