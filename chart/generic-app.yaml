@@ -18,12 +18,31 @@
 #   backend:                                   # Biến môi trường cho backend
 #     VAR1: value1
 #     VAR2: "https://{{ .Values.appName }}.{{ .Values.domainName }}"
-#   frontend:                                  # Biến môi trường cho frontend
+#   frontend:                                  # Biến môi trường cho frontend (được dùng cả khi runtime build hoặc mount env.js)
 #     VITE_API_BASE: "https://{{ .Values.appName }}-service.{{ .Values.domainName }}"
 # ingress:
 #   frontendHost: frontend.customdomain.com    # (optional) override subdomain FE
 #   backendHost: backend.customdomain.com      # (optional) override subdomain BE
 # -----------------------------------------------------------------------------
+
+---
+# Frontend Runtime env.js from ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.appName }}-frontend-env
+  labels:
+    app: {{ .Values.appName }}
+    tier: frontend
+  annotations:
+    content-type: "application/javascript"
+data:
+  env.js: |
+    window.__ENV__ = {
+      {{- range $key, $value := .Values.env.frontend }}
+      {{ $key }}: "{{ tpl $value $ }}",
+      {{- end }}
+    };
 
 ---
 # Backend Deployment
@@ -97,11 +116,14 @@ spec:
           image: {{ .Values.image.frontend.repository }}:{{ .Values.image.frontend.tag }}
           ports:
             - containerPort: {{ .Values.image.frontend.port | default 80 }}
-          env:
-            {{- range $key, $value := .Values.env.frontend }}
-            - name: {{ $key }}
-              value: "{{ tpl $value $ }}"
-            {{- end }}
+          volumeMounts:
+            - name: env-js
+              mountPath: /usr/share/nginx/html/env.js
+              subPath: env.js
+      volumes:
+        - name: env-js
+          configMap:
+            name: {{ .Values.appName }}-frontend-env
 
 ---
 # Frontend Service
