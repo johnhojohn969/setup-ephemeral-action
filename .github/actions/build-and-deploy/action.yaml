@@ -8,6 +8,14 @@ inputs:
     description: "Optional suffix appended to the ephemeral folder name"
     required: false
     default: ''
+  backend-dir:
+    description: "Path to backend Dockerfile"
+    required: false
+    default: ./app
+  frontend-dir:
+    description: "Path to frontend Dockerfile"
+    required: false
+    default: ./frontend
 runs:
   using: composite
   steps:
@@ -17,6 +25,9 @@ runs:
         suffix: ${{ inputs.suffix }}
     - name: Build and Push Images
       uses: johnhojohn969/setup-ephemeral-action/.github/actions/build-and-push@main
+      with:
+        backend-dir: ${{ inputs.backend-dir }}
+        frontend-dir: ${{ inputs.frontend-dir }}
     - name: Determine project name
       id: vars
       shell: bash
