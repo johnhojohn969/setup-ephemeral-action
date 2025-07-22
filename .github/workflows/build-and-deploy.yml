@@ -12,6 +12,14 @@ on:
         description: "Optional suffix appended to the ephemeral folder name"
         required: false
         default: ''
+      backend-dir:
+        description: "Path to backend Dockerfile"
+        required: false
+        default: './app'
+      frontend-dir:
+        description: "Path to frontend Dockerfile"
+        required: false
+        default: './frontend'
 
 jobs:
   build-and-deploy:
@@ -21,3 +29,5 @@ jobs:
         with:
           project: ${{ inputs.project }}
           suffix: ${{ inputs.suffix }}
+          backend-dir: ${{ inputs.backend-dir }}
+          frontend-dir: ${{ inputs.frontend-dir }}
