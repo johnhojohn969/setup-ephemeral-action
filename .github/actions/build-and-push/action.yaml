@@ -32,11 +32,19 @@ runs:
     - name: Build & Push Backend
       shell: bash
       run: |
+        if [ ! -d "${{ inputs.backend-dir }}" ]; then
+          echo "Backend directory '${{ inputs.backend-dir }}' does not exist" >&2
+          exit 1
+        fi
         docker build -t ghcr.io/${{ github.actor }}/${{ steps.repo.outputs.name }}-backend:${{ inputs.tag }} ${{ inputs.backend-dir }}
         docker push ghcr.io/${{ github.actor }}/${{ steps.repo.outputs.name }}-backend:${{ inputs.tag }}
 
     - name: Build & Push Frontend
       shell: bash
       run: |
+        if [ ! -d "${{ inputs.frontend-dir }}" ]; then
+          echo "Frontend directory '${{ inputs.frontend-dir }}' does not exist" >&2
+          exit 1
+        fi
         docker build -t ghcr.io/${{ github.actor }}/${{ steps.repo.outputs.name }}-frontend:${{ inputs.tag }} ${{ inputs.frontend-dir }}
         docker push ghcr.io/${{ github.actor }}/${{ steps.repo.outputs.name }}-frontend:${{ inputs.tag }}
