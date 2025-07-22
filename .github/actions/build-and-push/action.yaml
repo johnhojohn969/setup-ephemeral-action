@@ -25,7 +25,9 @@ runs:
     - name: Extract repo name for image prefix
       id: repo
       shell: bash
-      run: echo "name=$(basename ${{ github.repository }})" >> $GITHUB_OUTPUT
+      run: |
+        repo_name=$(basename "${{ github.repository }}")
+        echo "name=${repo_name,,}" >> "$GITHUB_OUTPUT"
 
     - name: Build & Push Backend
       shell: bash
