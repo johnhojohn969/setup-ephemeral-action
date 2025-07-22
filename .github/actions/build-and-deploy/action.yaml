@@ -12,11 +12,11 @@ runs:
   using: composite
   steps:
     - name: Checkout to ephemeral workspace
-      uses: ./.github/actions/checkout
+      uses: johnhojohn969/setup-ephemeral-action/.github/actions/checkout@main
       with:
         suffix: ${{ inputs.suffix }}
     - name: Build and Push Images
-      uses: ./.github/actions/build-and-push
+      uses: johnhojohn969/setup-ephemeral-action/.github/actions/build-and-push@main
     - name: Determine project name
       id: vars
       shell: bash
@@ -27,6 +27,6 @@ runs:
           echo "name=$(basename ${{ github.repository }})" >> "$GITHUB_OUTPUT"
         fi
     - name: Deploy with Helm
-      uses: ./.github/actions/deploy-helm-generic
+      uses: johnhojohn969/setup-ephemeral-action/.github/actions/deploy-helm-generic@main
       with:
         project: ${{ steps.vars.outputs.name }}
