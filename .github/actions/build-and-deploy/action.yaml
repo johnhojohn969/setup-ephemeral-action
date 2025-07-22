@@ -1,0 +1,32 @@
+name: Build and Deploy
+inputs:
+  project:
+    description: "Project folder under ./projects containing values.yaml"
+    required: false
+    default: ''
+  suffix:
+    description: "Optional suffix appended to the ephemeral folder name"
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: Checkout to ephemeral workspace
+      uses: ./.github/actions/checkout
+      with:
+        suffix: ${{ inputs.suffix }}
+    - name: Build and Push Images
+      uses: ./.github/actions/build-and-push
+    - name: Determine project name
+      id: vars
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.project }}" ]; then
+          echo "name=${{ inputs.project }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "name=$(basename ${{ github.repository }})" >> "$GITHUB_OUTPUT"
+        fi
+    - name: Deploy with Helm
+      uses: ./.github/actions/deploy-helm-generic
+      with:
+        project: ${{ steps.vars.outputs.name }}

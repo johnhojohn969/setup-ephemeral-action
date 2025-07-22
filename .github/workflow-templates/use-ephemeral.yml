@@ -1,0 +1,14 @@
+# Example template for ephemeral workspaces
+# For a complete workflow see `.github/workflows/build-and-deploy.yml`
+name: Example Using Setup Ephemeral
+on:
+  workflow_dispatch:
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: johnhojohn969/setup-ephemeral-action@main
+      - name: Display workspace
+        run: |
+          echo "Workspace: $GITHUB_WORKSPACE"
+          ls -al "$GITHUB_WORKSPACE"

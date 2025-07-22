@@ -1,0 +1,20 @@
+name: Setup ephemeral checkout
+inputs:
+  suffix:
+    description: Optional suffix appended to the folder name
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: Setup ephemeral workspace
+      uses: johnhojohn969/setup-ephemeral-action@main
+      with:
+        suffix: ${{ inputs.suffix }}
+    - name: Use ephemeral directory as workspace
+      shell: bash
+      run: echo "GITHUB_WORKSPACE=$WORK_DIR" >> "$GITHUB_ENV"
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        path: ${{ env.WORK_DIR }}
