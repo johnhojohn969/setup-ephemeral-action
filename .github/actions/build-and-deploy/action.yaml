@@ -60,6 +60,7 @@ runs:
           exit 1
         fi
         IMAGE_PREFIX="ghcr.io/${{ github.repository_owner }}"
+
         IMAGE_PREFIX="$IMAGE_PREFIX/${{ steps.repo.outputs.name }}"
         docker build \
           -t "$IMAGE_PREFIX-frontend:latest" \
