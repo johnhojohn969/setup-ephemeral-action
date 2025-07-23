@@ -1,0 +1,28 @@
+name: Deploy Helm Chart
+description: Install or upgrade a project using the generic Helm chart.
+inputs:
+  project:
+    description: "Project folder under ./projects containing values.yaml"
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: Determine project name
+      id: vars
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.project }}" ]; then
+          echo "name=${{ inputs.project }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "name=$(basename ${{ github.repository }})" >> "$GITHUB_OUTPUT"
+        fi
+    - name: Deploy with Helm
+      working-directory: ${{ github.workspace }}
+      shell: bash
+      run: |
+        helm upgrade --install ${{ steps.vars.outputs.name }} \
+          oci://ghcr.io/johnhojohn969/generic-app \
+          -f ./projects/${{ steps.vars.outputs.name }}/values.yaml \
+          --namespace ${{ steps.vars.outputs.name }} \
+          --create-namespace

@@ -1,0 +1,29 @@
+# Template building a remote repository with Buildx and deploying via Helm
+name: Buildx Remote and Deploy Helm
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: Name of the project to deploy
+        required: true
+      repository:
+        description: Git repository URL for Buildx
+        required: true
+      dockerfile:
+        description: Path to Dockerfile in the remote repo
+        required: true
+      image-tag:
+        description: Full image tag
+        required: true
+jobs:
+  build-deploy:
+    runs-on: self-hosted
+    steps:
+      - uses: johnhojohn969/setup-ephemeral-action/.github/actions/buildx-remote@main
+        with:
+          repository: ${{ inputs.repository }}
+          file: ${{ inputs.dockerfile }}
+          tag: ${{ inputs.image-tag }}
+      - uses: johnhojohn969/setup-ephemeral-action/.github/actions/deploy-helm@main
+        with:
+          project: ${{ inputs.project }}
