@@ -1,3 +1,4 @@
+---
 name: Build and Deploy
 inputs:
   project:
@@ -23,12 +24,47 @@ runs:
       uses: johnhojohn969/setup-ephemeral-action/.github/actions/checkout@main
       with:
         suffix: ${{ inputs.suffix }}
-    - name: Build and Push Images
+    - name: Log in to GitHub Container Registry
+      shell: bash
+      run: |
+        echo "${{ github.token }}" | \
+          docker login ghcr.io -u ${{ github.actor }} --password-stdin
+    - name: Extract repo name for image prefix
+      id: repo
+      shell: bash
+      run: |
+        repo_name=$(basename "${{ github.repository }}")
+        echo "name=${repo_name,,}" >> "$GITHUB_OUTPUT"
+    - name: Build & Push Backend
       working-directory: ${{ env.WORK_DIR }}
-      uses: johnhojohn969/setup-ephemeral-action/.github/actions/build-and-push@main
-      with:
-        backend-dir: ${{ inputs.backend-dir }}
-        frontend-dir: ${{ inputs.frontend-dir }}
+      shell: bash
+      run: |
+        if [ ! -d "${{ inputs.backend-dir }}" ]; then
+        echo "Backend directory '${{ inputs.backend-dir }}' does not exist" \
+          >&2
+          exit 1
+        fi
+        IMAGE_PREFIX="ghcr.io/${{ github.repository_owner }}"
+        IMAGE_PREFIX="$IMAGE_PREFIX/${{ steps.repo.outputs.name }}"
+        docker build \
+          -t "$IMAGE_PREFIX-backend:latest" \
+          ${{ inputs.backend-dir }}
+        docker push "$IMAGE_PREFIX-backend:latest"
+    - name: Build & Push Frontend
+      working-directory: ${{ env.WORK_DIR }}
+      shell: bash
+      run: |
+        if [ ! -d "${{ inputs.frontend-dir }}" ]; then
+        echo "Frontend directory '${{ inputs.frontend-dir }}' does not exist" \
+          >&2
+          exit 1
+        fi
+        IMAGE_PREFIX="ghcr.io/${{ github.repository_owner }}"
+        IMAGE_PREFIX="$IMAGE_PREFIX/${{ steps.repo.outputs.name }}"
+        docker build \
+          -t "$IMAGE_PREFIX-frontend:latest" \
+          ${{ inputs.frontend-dir }}
+        docker push "$IMAGE_PREFIX-frontend:latest"
     - name: Determine project name
       working-directory: ${{ env.WORK_DIR }}
       id: vars
@@ -41,6 +77,10 @@ runs:
         fi
     - name: Deploy with Helm
       working-directory: ${{ env.WORK_DIR }}
-      uses: johnhojohn969/setup-ephemeral-action/.github/actions/deploy-helm-generic@main
-      with:
-        project: ${{ steps.vars.outputs.name }}
+      shell: bash
+      run: |
+        helm upgrade --install ${{ steps.vars.outputs.name }} \
+          oci://ghcr.io/johnhojohn969/generic-app \
+          -f ./projects/${{ steps.vars.outputs.name }}/values.yaml \
+          --namespace ${{ steps.vars.outputs.name }} \
+          --create-namespace
