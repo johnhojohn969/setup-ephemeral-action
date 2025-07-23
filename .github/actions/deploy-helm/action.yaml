@@ -1,0 +1,41 @@
+name: Deploy Helm Chart
+description: "Deploy a Helm chart using helm upgrade --install"
+inputs:
+  release:
+    description: "Helm release name"
+    required: true
+  chart:
+    description: "Chart reference or path"
+    required: true
+  values:
+    description: "Path to values.yaml"
+    required: false
+    default: ''
+  namespace:
+    description: "Kubernetes namespace"
+    required: false
+    default: ''
+  extra-args:
+    description: "Additional arguments for helm"
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: Helm upgrade/install
+      working-directory: ${{ env.WORK_DIR }}
+      shell: bash
+      run: |
+        set -e
+        cmd=(helm upgrade --install "${{ inputs.release }}" "${{ inputs.chart }}")
+        if [ -n "${{ inputs.values }}" ]; then
+          cmd+=( -f "${{ inputs.values }}" )
+        fi
+        if [ -n "${{ inputs.namespace }}" ]; then
+          cmd+=( --namespace "${{ inputs.namespace }}" --create-namespace )
+        fi
+        if [ -n "${{ inputs.extra-args }}" ]; then
+          cmd+=( ${{ inputs.extra-args }} )
+        fi
+        echo "Running: ${cmd[@]}"
+        "${cmd[@]}"
