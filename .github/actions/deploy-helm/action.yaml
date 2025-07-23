@@ -1,0 +1,35 @@
+name: Deploy Helm Chart
+inputs:
+  project:
+    description: "Project folder under ./projects containing values.yaml"
+    required: false
+    default: ''
+  suffix:
+    description: "Optional suffix appended to the ephemeral folder name"
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: Checkout to ephemeral workspace
+      uses: johnhojohn969/setup-ephemeral-action/.github/actions/checkout@main
+      with:
+        suffix: ${{ inputs.suffix }}
+    - name: Determine project name
+      id: vars
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.project }}" ]; then
+          echo "name=${{ inputs.project }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "name=$(basename ${{ github.repository }})" >> "$GITHUB_OUTPUT"
+        fi
+    - name: Deploy with Helm
+      working-directory: ${{ env.WORK_DIR }}
+      shell: bash
+      run: |
+        helm upgrade --install ${{ steps.vars.outputs.name }} \
+          oci://ghcr.io/johnhojohn969/generic-app \
+          -f ./projects/${{ steps.vars.outputs.name }}/values.yaml \
+          --namespace ${{ steps.vars.outputs.name }} \
+          --create-namespace
