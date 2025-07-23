@@ -37,8 +37,8 @@ runs:
           echo "Backend directory '${{ inputs.backend-dir }}' does not exist" >&2
           exit 1
         fi
-        docker build -t ghcr.io/${{ github.actor }}/${{ steps.repo.outputs.name }}-backend:${{ inputs.tag }} ${{ inputs.backend-dir }}
-        docker push ghcr.io/${{ github.actor }}/${{ steps.repo.outputs.name }}-backend:${{ inputs.tag }}
+        docker build -t ghcr.io/${{ github.repository_owner }}/${{ steps.repo.outputs.name }}-backend:${{ inputs.tag }} ${{ inputs.backend-dir }}
+        docker push ghcr.io/${{ github.repository_owner }}/${{ steps.repo.outputs.name }}-backend:${{ inputs.tag }}
 
     - name: Build & Push Frontend
       working-directory: ${{ env.WORK_DIR }}
@@ -48,5 +48,5 @@ runs:
           echo "Frontend directory '${{ inputs.frontend-dir }}' does not exist" >&2
           exit 1
         fi
-        docker build -t ghcr.io/${{ github.actor }}/${{ steps.repo.outputs.name }}-frontend:${{ inputs.tag }} ${{ inputs.frontend-dir }}
-        docker push ghcr.io/${{ github.actor }}/${{ steps.repo.outputs.name }}-frontend:${{ inputs.tag }}
+        docker build -t ghcr.io/${{ github.repository_owner }}/${{ steps.repo.outputs.name }}-frontend:${{ inputs.tag }} ${{ inputs.frontend-dir }}
+        docker push ghcr.io/${{ github.repository_owner }}/${{ steps.repo.outputs.name }}-frontend:${{ inputs.tag }}
