@@ -20,6 +20,10 @@ on:
         description: "Path to frontend Dockerfile"
         required: false
         default: './frontend'
+      ensure-dirs:
+        description: "Create backend and frontend directories if missing"
+        required: false
+        default: 'false'
 
 jobs:
   build-and-deploy:
@@ -31,3 +35,4 @@ jobs:
           suffix: ${{ inputs.suffix }}
           backend-dir: ${{ inputs.backend-dir }}
           frontend-dir: ${{ inputs.frontend-dir }}
+          ensure-dirs: ${{ inputs.ensure-dirs }}
