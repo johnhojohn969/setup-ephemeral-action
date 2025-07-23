@@ -20,6 +20,14 @@ on:
         description: "Path to frontend Dockerfile"
         required: false
         default: './frontend'
+      registry-token:
+        description: "Token used to login to ghcr.io"
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   build-and-deploy:
@@ -31,3 +39,4 @@ jobs:
           suffix: ${{ inputs.suffix }}
           backend-dir: ${{ inputs.backend-dir }}
           frontend-dir: ${{ inputs.frontend-dir }}
+          registry-token: ${{ inputs.registry-token }}
