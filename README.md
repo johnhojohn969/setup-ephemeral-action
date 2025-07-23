@@ -16,7 +16,9 @@ builds backend and frontend Docker images and deploys them via Helm.
     project: my-app
     backend-dir: ./backend
     frontend-dir: ./frontend
+    ensure-dirs: true
 ```
 
 `backend-dir` and `frontend-dir` default to `./app` and `./frontend`. Override
-them if your repository uses different locations.
+them if your repository uses different locations. Set `ensure-dirs` to `true`
+to create these directories when missing.
