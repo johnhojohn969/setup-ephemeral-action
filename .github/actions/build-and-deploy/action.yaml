@@ -16,6 +16,10 @@ inputs:
     description: "Path to frontend Dockerfile"
     required: false
     default: ./frontend
+  ensure-dirs:
+    description: "Create backend and frontend directories if they don't exist"
+    required: false
+    default: "false"
 runs:
   using: composite
   steps:
@@ -23,6 +27,11 @@ runs:
       uses: johnhojohn969/setup-ephemeral-action/.github/actions/checkout@main
       with:
         suffix: ${{ inputs.suffix }}
+    - name: Ensure backend and frontend directories exist
+      if: inputs.ensure-dirs == 'true'
+      shell: bash
+      run: |
+        mkdir -p "${{ inputs.backend-dir }}" "${{ inputs.frontend-dir }}"
     - name: Build and Push Images
       uses: johnhojohn969/setup-ephemeral-action/.github/actions/build-and-push@main
       with:
