@@ -21,7 +21,7 @@ on:
         required: false
         default: './frontend'
       registry-token:
-        description: "Token used to login to ghcr.io"
+        description: "Token used to login to ghcr.io (defaults to GIT_PAT secret)"
         required: false
         default: ''
 
@@ -39,4 +39,4 @@ jobs:
           suffix: ${{ inputs.suffix }}
           backend-dir: ${{ inputs.backend-dir }}
           frontend-dir: ${{ inputs.frontend-dir }}
-          registry-token: ${{ inputs.registry-token }}
+          registry-token: ${{ inputs.registry-token || secrets.GIT_PAT }}

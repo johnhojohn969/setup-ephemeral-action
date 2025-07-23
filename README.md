@@ -16,9 +16,12 @@ builds backend and frontend Docker images and deploys them via Helm.
     project: my-app
     backend-dir: ./app
     frontend-dir: ./frontend
-    # optional: token with write access to ghcr.io
-    registry-token: ${{ secrets.GHCR_TOKEN }}
+    # optional: token with write access to ghcr.io (defaults to secrets.GIT_PAT)
+    registry-token: ${{ secrets.GIT_PAT }}
 ```
+
+The action authenticates to GHCR using the workflow trigger's username
+via `github.triggering_actor` (falling back to `github.actor`).
 
 `backend-dir` and `frontend-dir` default to `./app` and `./frontend`.
 These folders must already exist; the action does not create them automatically.
