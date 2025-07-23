@@ -39,3 +39,24 @@ Use the `buildx-remote` action to build and push a Docker image using a remote G
 ```
 
 Provide `registry-token` if the default `GITHUB_TOKEN` cannot push to GHCR.
+
+### Deploy Helm Chart
+
+Use `deploy-helm` when you only need to install or upgrade one of the provided projects using the generic chart.
+
+```yaml
+- uses: johnhojohn969/setup-ephemeral-action/.github/actions/deploy-helm@main
+  with:
+    project: my-app
+```
+
+The action checks out the repository to an ephemeral workspace and runs:
+
+```bash
+helm upgrade --install <project> \
+  oci://ghcr.io/johnhojohn969/generic-app \
+  -f ./projects/<project>/values.yaml \
+  --namespace <project> --create-namespace
+```
+
+See `.github/workflow-templates/buildx-and-deploy.yml` for a workflow using this action together with `buildx-remote`.
