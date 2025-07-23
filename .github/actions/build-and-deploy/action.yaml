@@ -24,11 +24,13 @@ runs:
       with:
         suffix: ${{ inputs.suffix }}
     - name: Build and Push Images
+      working-directory: ${{ env.WORK_DIR }}
       uses: johnhojohn969/setup-ephemeral-action/.github/actions/build-and-push@main
       with:
         backend-dir: ${{ inputs.backend-dir }}
         frontend-dir: ${{ inputs.frontend-dir }}
     - name: Determine project name
+      working-directory: ${{ env.WORK_DIR }}
       id: vars
       shell: bash
       run: |
@@ -38,6 +40,7 @@ runs:
           echo "name=$(basename ${{ github.repository }})" >> "$GITHUB_OUTPUT"
         fi
     - name: Deploy with Helm
+      working-directory: ${{ env.WORK_DIR }}
       uses: johnhojohn969/setup-ephemeral-action/.github/actions/deploy-helm-generic@main
       with:
         project: ${{ steps.vars.outputs.name }}
