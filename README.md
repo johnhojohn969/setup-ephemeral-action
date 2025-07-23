@@ -14,9 +14,10 @@ builds backend and frontend Docker images and deploys them via Helm.
 - uses: johnhojohn969/setup-ephemeral-action/.github/actions/build-and-deploy@main
   with:
     project: my-app
-    backend-dir: ./backend
+    backend-dir: ./app
     frontend-dir: ./frontend
 ```
 
-`backend-dir` and `frontend-dir` default to `./app` and `./frontend`. Override
-them if your repository uses different locations.
+`backend-dir` and `frontend-dir` default to `./app` and `./frontend`.
+These folders must already exist; the action does not create them automatically.
+Override the paths if your repository uses different locations.
