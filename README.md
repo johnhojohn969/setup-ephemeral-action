@@ -25,3 +25,17 @@ These folders must already exist; the action does not create them automatically.
 If your organization disallows the default `GITHUB_TOKEN` from publishing
 packages, provide a personal access token via `registry-token`.
 Override the paths if your repository uses different locations.
+
+### Buildx Remote Build Action
+
+Use the `buildx-remote` action to build and push a Docker image using a remote Git repository as the build context.
+
+```yaml
+- uses: johnhojohn969/setup-ephemeral-action/.github/actions/buildx-remote@main
+  with:
+    repository: git://github.com/johnhojohn969/your-app.git#main
+    file: repo/Dockerfile
+    tag: ghcr.io/${{ github.actor }}/your-app:latest
+```
+
+Provide `registry-token` if the default `GITHUB_TOKEN` cannot push to GHCR.
