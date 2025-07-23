@@ -30,6 +30,7 @@ runs:
         echo "name=${repo_name,,}" >> "$GITHUB_OUTPUT"
 
     - name: Build & Push Backend
+      working-directory: ${{ env.WORK_DIR }}
       shell: bash
       run: |
         if [ ! -d "${{ inputs.backend-dir }}" ]; then
@@ -40,6 +41,7 @@ runs:
         docker push ghcr.io/${{ github.actor }}/${{ steps.repo.outputs.name }}-backend:${{ inputs.tag }}
 
     - name: Build & Push Frontend
+      working-directory: ${{ env.WORK_DIR }}
       shell: bash
       run: |
         if [ ! -d "${{ inputs.frontend-dir }}" ]; then
