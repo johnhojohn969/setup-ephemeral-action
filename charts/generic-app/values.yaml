@@ -1,17 +1,9 @@
 appName: sample
 domainName: attyzen.com
 image:
-  backend:
-    repository: backend-image
-    tag: latest
-    port: 8000
-  frontend:
-    repository: frontend-image
-    tag: latest
-    port: 80
-env:
-  backend: {}
-  frontend: {}
+  repository: app-image
+  tag: latest
+  port: 80
+env: {}
 ingress:
-  frontendHost: ""
-  backendHost: ""
+  host: ""

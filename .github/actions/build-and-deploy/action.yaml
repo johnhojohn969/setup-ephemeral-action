@@ -9,14 +9,10 @@ inputs:
     description: "Optional suffix appended to the ephemeral folder name"
     required: false
     default: ''
-  backend-dir:
-    description: "Path to backend Dockerfile"
+  app-dir:
+    description: "Path to application Dockerfile"
     required: false
     default: ./app
-  frontend-dir:
-    description: "Path to frontend Dockerfile"
-    required: false
-    default: ./frontend
   registry-token:
     description: "Token used to login to ghcr.io"
     required: false
@@ -40,37 +36,18 @@ runs:
       run: |
         repo_name=$(basename "${{ github.repository }}")
         echo "name=${repo_name,,}" >> "$GITHUB_OUTPUT"
-    - name: Build & Push Backend
+    - name: Build & Push Image
       working-directory: ${{ env.WORK_DIR }}
       shell: bash
       run: |
-        if [ ! -d "${{ inputs.backend-dir }}" ]; then
-        echo "Backend directory '${{ inputs.backend-dir }}' does not exist" \
+        if [ ! -d "${{ inputs.app-dir }}" ]; then
+        echo "App directory '${{ inputs.app-dir }}' does not exist" \
           >&2
           exit 1
         fi
-        IMAGE_PREFIX="ghcr.io/${{ github.repository_owner }}"
-        IMAGE_PREFIX="$IMAGE_PREFIX/${{ steps.repo.outputs.name }}"
-        docker build \
-          -t "$IMAGE_PREFIX-backend:latest" \
-          ${{ inputs.backend-dir }}
-        docker push "$IMAGE_PREFIX-backend:latest"
-    - name: Build & Push Frontend
-      working-directory: ${{ env.WORK_DIR }}
-      shell: bash
-      run: |
-        if [ ! -d "${{ inputs.frontend-dir }}" ]; then
-        echo "Frontend directory '${{ inputs.frontend-dir }}' does not exist" \
-          >&2
-          exit 1
-        fi
-        IMAGE_PREFIX="ghcr.io/${{ github.repository_owner }}"
-
-        IMAGE_PREFIX="$IMAGE_PREFIX/${{ steps.repo.outputs.name }}"
-        docker build \
-          -t "$IMAGE_PREFIX-frontend:latest" \
-          ${{ inputs.frontend-dir }}
-        docker push "$IMAGE_PREFIX-frontend:latest"
+        IMAGE="ghcr.io/${{ github.repository_owner }}/${{ steps.repo.outputs.name }}:latest"
+        docker build -t "$IMAGE" "${{ inputs.app-dir }}"
+        docker push "$IMAGE"
     - name: Determine project name
       working-directory: ${{ env.WORK_DIR }}
       id: vars

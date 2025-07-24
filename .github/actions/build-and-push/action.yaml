@@ -1,15 +1,11 @@
-name: Build & Push App Images
-description: Build and push Docker images for backend and frontend
+name: Build & Push App Image
+description: Build and push a Docker image for the application
 
 inputs:
-  backend-dir:
-    description: "Path to backend Dockerfile (default: ./app)"
+  app-dir:
+    description: "Path to application Dockerfile (default: ./app)"
     required: false
     default: ./app
-  frontend-dir:
-    description: "Path to frontend Dockerfile (default: ./frontend)"
-    required: false
-    default: ./frontend
   tag:
     description: "Image tag to use (default: latest)"
     required: false
@@ -35,24 +31,13 @@ runs:
         repo_name=$(basename "${{ github.repository }}")
         echo "name=${repo_name,,}" >> "$GITHUB_OUTPUT"
 
-    - name: Build & Push Backend
+    - name: Build & Push Image
       working-directory: ${{ env.WORK_DIR }}
       shell: bash
       run: |
-        if [ ! -d "${{ inputs.backend-dir }}" ]; then
-          echo "Backend directory '${{ inputs.backend-dir }}' does not exist" >&2
+        if [ ! -d "${{ inputs.app-dir }}" ]; then
+          echo "App directory '${{ inputs.app-dir }}' does not exist" >&2
           exit 1
         fi
-        docker build -t ghcr.io/${{ github.repository_owner }}/${{ steps.repo.outputs.name }}-backend:${{ inputs.tag }} ${{ inputs.backend-dir }}
-        docker push ghcr.io/${{ github.repository_owner }}/${{ steps.repo.outputs.name }}-backend:${{ inputs.tag }}
-
-    - name: Build & Push Frontend
-      working-directory: ${{ env.WORK_DIR }}
-      shell: bash
-      run: |
-        if [ ! -d "${{ inputs.frontend-dir }}" ]; then
-          echo "Frontend directory '${{ inputs.frontend-dir }}' does not exist" >&2
-          exit 1
-        fi
-        docker build -t ghcr.io/${{ github.repository_owner }}/${{ steps.repo.outputs.name }}-frontend:${{ inputs.tag }} ${{ inputs.frontend-dir }}
-        docker push ghcr.io/${{ github.repository_owner }}/${{ steps.repo.outputs.name }}-frontend:${{ inputs.tag }}
+        docker build -t ghcr.io/${{ github.repository_owner }}/${{ steps.repo.outputs.name }}:${{ inputs.tag }} ${{ inputs.app-dir }}
+        docker push ghcr.io/${{ github.repository_owner }}/${{ steps.repo.outputs.name }}:${{ inputs.tag }}

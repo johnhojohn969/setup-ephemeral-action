@@ -1,6 +1,6 @@
 # generic-app Helm Chart
 
-This chart packages a simple backend and frontend application with ingress and runtime environment `env.js` support.
+This chart packages a single containerized application with a service and ingress.
 
 ## Usage
 
@@ -20,21 +20,12 @@ Create a `values.yaml` similar to the following:
 appName: sample
 domainName: attyzen.com
 image:
-  backend:
-    repository: ghcr.io/your-org/backend
-    tag: latest
-    port: 8002
-  frontend:
-    repository: ghcr.io/your-org/frontend
-    tag: latest
-    port: 80
+  repository: ghcr.io/your-org/app
+  tag: latest
+  port: 80
 env:
-  backend:
-    VAR1: value1
-    VAR2: "https://{{ .Values.appName }}.{{ .Values.domainName }}"
-  frontend:
-    VITE_API_BASE: "https://{{ .Values.appName }}-service.{{ .Values.domainName }}"
+  VAR1: value1
+  VAR2: "https://{{ .Values.appName }}.{{ .Values.domainName }}"
 ingress:
-  frontendHost: frontend.customdomain.com
-  backendHost: backend.customdomain.com
+  host: sample.customdomain.com
 ```

@@ -1,182 +1,61 @@
-# generic-app.yaml - Helm chart đơn file (Deployment + Service + Ingress cho FE + BE)
-
-# -----------------------------------------------------------------------------
-# EXPECTED VALUES STRUCTURE (ví dụ trong values.yaml):
-#
-# appName: atty-financial                      # Prefix tên app
-# domainName: attyzen.com                      # Domain mặc định cho ingress
-# image:
-#   backend:
-#     repository: ghcr.io/your-org/backend     # Image backend (repo gốc)
-#     tag: latest                              # Tag của image backend
-#     port: 8002                               # Port container backend
-#   frontend:
-#     repository: ghcr.io/your-org/frontend    # Image frontend (repo gốc)
-#     tag: latest                              # Tag của image frontend
-#     port: 80                                 # Port container frontend
-# env:
-#   backend:                                   # Biến môi trường cho backend
-#     VAR1: value1
-#     VAR2: "https://{{ .Values.appName }}.{{ .Values.domainName }}"
-#   frontend:                                  # Biến môi trường cho frontend (được dùng cả khi runtime build hoặc mount env.js)
-#     VITE_API_BASE: "https://{{ .Values.appName }}-service.{{ .Values.domainName }}"
-# ingress:
-#   frontendHost: frontend.customdomain.com    # (optional) override subdomain FE
-#   backendHost: backend.customdomain.com      # (optional) override subdomain BE
-# -----------------------------------------------------------------------------
+# generic-app.yaml - Simple single container Deployment, Service and Ingress
 
 ---
-# Frontend Runtime env.js from ConfigMap
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Values.appName }}-frontend-env
-  labels:
-    app: {{ .Values.appName }}
-    tier: frontend
-  annotations:
-    content-type: "application/javascript"
-data:
-  env.js: |
-    window.__ENV__ = {
-      {{- range $key, $value := .Values.env.frontend }}
-      {{ $key }}: "{{ tpl $value $ }}",
-      {{- end }}
-    };
-
----
-# Backend Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.appName }}-backend
+  name: {{ .Values.appName }}
   labels:
     app: {{ .Values.appName }}
-    tier: backend
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: {{ .Values.appName }}
-      tier: backend
   template:
     metadata:
       labels:
         app: {{ .Values.appName }}
-        tier: backend
     spec:
       containers:
-        - name: backend
-          image: {{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag }}
+        - name: app
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           ports:
-            - containerPort: {{ .Values.image.backend.port | default 8000 }}
+            - containerPort: {{ .Values.image.port | default 80 }}
           env:
-            {{- range $key, $value := .Values.env.backend }}
+            {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: "{{ tpl $value $ }}"
             {{- end }}
 
 ---
-# Backend Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.appName }}-backend
+  name: {{ .Values.appName }}
 spec:
   selector:
     app: {{ .Values.appName }}
-    tier: backend
   ports:
-    - port: {{ .Values.image.backend.port | default 8000 }}
-      targetPort: {{ .Values.image.backend.port | default 8000 }}
+    - port: {{ .Values.image.port | default 80 }}
+      targetPort: {{ .Values.image.port | default 80 }}
 
 ---
-# Frontend Deployment
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {{ .Values.appName }}-frontend
-  labels:
-    app: {{ .Values.appName }}
-    tier: frontend
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: {{ .Values.appName }}
-      tier: frontend
-  template:
-    metadata:
-      labels:
-        app: {{ .Values.appName }}
-        tier: frontend
-    spec:
-      containers:
-        - name: frontend
-          image: {{ .Values.image.frontend.repository }}:{{ .Values.image.frontend.tag }}
-          ports:
-            - containerPort: {{ .Values.image.frontend.port | default 80 }}
-          volumeMounts:
-            - name: env-js
-              mountPath: /usr/share/nginx/html/env.js
-              subPath: env.js
-      volumes:
-        - name: env-js
-          configMap:
-            name: {{ .Values.appName }}-frontend-env
-
----
-# Frontend Service
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .Values.appName }}-frontend
-spec:
-  selector:
-    app: {{ .Values.appName }}
-    tier: frontend
-  ports:
-    - port: {{ .Values.image.frontend.port | default 80 }}
-      targetPort: {{ .Values.image.frontend.port | default 80 }}
-
----
-# Frontend Ingress
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.appName }}-frontend
+  name: {{ .Values.appName }}
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   rules:
-    - host: {{ .Values.ingress.frontendHost | default (printf "%s.%s" .Values.appName (.Values.domainName | default "attyzen.com")) }}
+    - host: {{ .Values.ingress.host | default (printf "%s.%s" .Values.appName (.Values.domainName | default "attyzen.com")) }}
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: {{ .Values.appName }}-frontend
+                name: {{ .Values.appName }}
                 port:
-                  number: {{ .Values.image.frontend.port | default 80 }}
-
----
-# Backend Ingress
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: {{ .Values.appName }}-backend
-  annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-spec:
-  rules:
-    - host: {{ .Values.ingress.backendHost | default (printf "%s-service.%s" .Values.appName (.Values.domainName | default "attyzen.com")) }}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ .Values.appName }}-backend
-                port:
-                  number: {{ .Values.image.backend.port | default 8000 }}
+                  number: {{ .Values.image.port | default 80 }}
