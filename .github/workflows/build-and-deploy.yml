@@ -12,14 +12,10 @@ on:
         description: "Optional suffix appended to the ephemeral folder name"
         required: false
         default: ''
-      backend-dir:
-        description: "Path to backend Dockerfile"
+      app-dir:
+        description: "Path to application Dockerfile"
         required: false
         default: './app'
-      frontend-dir:
-        description: "Path to frontend Dockerfile"
-        required: false
-        default: './frontend'
       registry-token:
         description: "Token used to login to ghcr.io (defaults to GIT_PAT secret)"
         required: false
@@ -37,6 +33,5 @@ jobs:
         with:
           project: ${{ inputs.project }}
           suffix: ${{ inputs.suffix }}
-          backend-dir: ${{ inputs.backend-dir }}
-          frontend-dir: ${{ inputs.frontend-dir }}
+          app-dir: ${{ inputs.app-dir }}
           registry-token: ${{ inputs.registry-token || secrets.GIT_PAT }}
