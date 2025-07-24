@@ -1,6 +1,6 @@
 # setup-ephemeral-action
 
-This repository also contains a reusable Helm chart under `charts/generic-app` for deploying a simple backend and frontend application. You can render manifests or push the chart to an OCI registry.
+This repository also contains a reusable Helm chart under `charts/generic-app` for deploying a single containerized application. You can render manifests or push the chart to an OCI registry.
 
 See `charts/generic-app/README.md` for usage and configuration details.
 
@@ -8,14 +8,13 @@ See `charts/generic-app/README.md` for usage and configuration details.
 
 The repository provides composite actions for use in your workflows. The
 `build-and-deploy` action checks out the repository to an ephemeral workspace,
-builds backend and frontend Docker images and deploys them via Helm.
+builds a Docker image and deploys it via Helm.
 
 ```yaml
 - uses: johnhojohn969/setup-ephemeral-action/.github/actions/build-and-deploy@main
   with:
     project: my-app
-    backend-dir: ./app
-    frontend-dir: ./frontend
+    app-dir: ./app
     # optional: token with write access to ghcr.io (defaults to secrets.GIT_PAT)
     registry-token: ${{ secrets.GIT_PAT }}
 ```
@@ -23,8 +22,7 @@ builds backend and frontend Docker images and deploys them via Helm.
 The action authenticates to GHCR using the workflow trigger's username
 via `github.triggering_actor` (falling back to `github.actor`).
 
-`backend-dir` and `frontend-dir` default to `./app` and `./frontend`.
-These folders must already exist; the action does not create them automatically.
+`app-dir` defaults to `./app` and must already exist; the action does not create it automatically.
 If your organization disallows the default `GITHUB_TOKEN` from publishing
 packages, provide a personal access token via `registry-token`.
 Override the paths if your repository uses different locations.
@@ -64,3 +62,19 @@ helm upgrade --install <project> \
 ```
 
 See `.github/workflow-templates/buildx-and-deploy.yml` for a workflow using this action together with `buildx-remote`.
+
+### Package and Push Helm Chart
+
+Use `helm-push` to package the generic chart and upload it to an OCI registry.
+
+```yaml
+- uses: johnhojohn969/setup-ephemeral-action/.github/actions/helm-push@main
+  with:
+    chart-path: charts/generic-app
+    registry: oci://ghcr.io/your-user/generic-app
+```
+
+### Push Chart Workflow
+
+Use the `Push Generic Chart` workflow to automatically package and publish the chart to GHCR whenever files under `charts/generic-app` change.
+See `.github/workflows/push-generic-chart.yml` for details.

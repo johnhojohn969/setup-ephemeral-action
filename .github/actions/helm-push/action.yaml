@@ -1,0 +1,42 @@
+name: Package and Push Helm Chart
+description: Package a Helm chart and push it to an OCI registry.
+inputs:
+  chart-path:
+    description: Path to the chart directory
+    required: true
+  registry:
+    description: OCI registry URL (e.g. oci://example.com/my-charts)
+    required: true
+  version:
+    description: Chart version to package (optional)
+    required: false
+    default: ""
+  registry-token:
+    description: Token used to login to the registry (defaults to GITHUB_TOKEN)
+    required: false
+    default: ${{ github.token }}
+runs:
+  using: composite
+  steps:
+    - name: Package chart
+      shell: bash
+      run: |
+        set -euo pipefail
+        version="${{ inputs.version }}"
+        if [ -n "$version" ]; then
+          helm package "$chart" --version "$version" --destination /tmp
+        else
+          helm package "$chart" --destination /tmp
+        fi
+      env:
+        chart: ${{ inputs.chart-path }}
+    - name: Login to registry
+      shell: bash
+      run: |
+        REGISTRY=$(echo "${{ inputs.registry }}" | cut -d '/' -f 3)
+        echo "${{ inputs.registry-token }}" | helm registry login "$REGISTRY" --username "${{ github.actor }}" --password-stdin
+    - name: Push chart
+      shell: bash
+      run: |
+        PACKAGE=$(ls /tmp | grep .tgz)
+        helm push "/tmp/$PACKAGE" "${{ inputs.registry }}"
