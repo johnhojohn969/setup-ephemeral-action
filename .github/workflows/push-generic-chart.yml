@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: johnhojohn969/setup-ephemeral-action/.github/actions/helm-push@main
+      - uses: ./.github/actions/helm-push
         with:
           chart-path: charts/generic-app
           registry: oci://ghcr.io/johnhojohn969/generic-app
