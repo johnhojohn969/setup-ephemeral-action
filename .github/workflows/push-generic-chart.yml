@@ -18,6 +18,6 @@ jobs:
       - uses: ./.github/actions/helm-push
         with:
           chart-path: charts/generic-app
-          registry: oci://ghcr.io/johnhojohn969/generic-app
+          registry: oci://ghcr.io/johnhojohn969
           registry-token: ${{ secrets.GIT_PAT }}
 
