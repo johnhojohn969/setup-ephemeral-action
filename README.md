@@ -68,7 +68,7 @@ See `.github/workflow-templates/buildx-and-deploy.yml` for a workflow using this
 Use `helm-push` to package the generic chart and upload it to an OCI registry.
 
 ```yaml
-- uses: johnhojohn969/setup-ephemeral-action/.github/actions/helm-push@main
+- uses: ./.github/actions/helm-push
   with:
     chart-path: charts/generic-app
     registry: oci://ghcr.io/your-user/generic-app
