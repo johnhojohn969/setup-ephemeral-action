@@ -1,0 +1,23 @@
+name: Push Generic Chart
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'charts/generic-app/**'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  push-chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: johnhojohn969/setup-ephemeral-action/.github/actions/helm-push@main
+        with:
+          chart-path: charts/generic-app
+          registry: oci://ghcr.io/johnhojohn969/generic-app
+          registry-token: ${{ secrets.GIT_PAT }}
+
